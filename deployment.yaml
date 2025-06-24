@@ -52,7 +52,6 @@ spec:
       port: 5432
       targetPort: 5432
       nodePort: 30132  # Change this to your desired NodePort
-      
   type: NodePort  # Use NodePort/LoadBalancer for external access
 
 
@@ -70,34 +69,34 @@ spec:
   storageClassName: local
 
 ---
-# apiVersion: batch/v1
-# kind: CronJob
-# metadata:
-#   name: postgres-backup
-# spec:
-#   schedule: "0 * * * *"  # every hour
-#   jobTemplate:
-#     spec:
-#       template:
-#         spec:
-#           containers:
-#             - name: backup
-#               image: postgres:latest
-#               env:
-#                 - name: PGPASSWORD
-#                   value: "your_password"
-#               command: ["/bin/sh", "-c"]
-#               args:
-#                 - |
-#                   pg_dump -h postgres-0.postgres.default.svc.cluster.local \
-#                           -U postgres \
-#                           -F c \
-#                           -f /backup/backup_$(date +%Y%m%d%H%M%S).dump
-#               volumeMounts:
-#                 - name: backup-volume
-#                   mountPath: /backup
-#           restartPolicy: OnFailure
-#           volumes:
-#             - name: backup-volume
-#               persistentVolumeClaim:
-#                 claimName: postgres-backup-pvc
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "0 * * * *"  # every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: backup
+              image: postgres:latest
+              env:
+                - name: PGPASSWORD
+                  value: "your_password"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  pg_dump -h postgres-0.postgres.default.svc.cluster.local \
+                          -U postgres \
+                          -F c \
+                          -f /backup/backup_$(date +%Y%m%d%H%M%S).dump
+              volumeMounts:
+                - name: backup-volume
+                  mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+            - name: backup-volume
+              persistentVolumeClaim:
+                claimName: postgres-backup-pvc
